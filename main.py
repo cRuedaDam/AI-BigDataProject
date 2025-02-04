@@ -26,13 +26,13 @@ from tensorflow.keras.callbacks import EarlyStopping
 # -----------------------------
 data = pd.read_csv("data.csv")
 
-print("\n[1] Primeras filas del dataset:")
+print("\nPrimeras filas del dataset:")
 print(data.head())
 
-print("\n[1] Información general del dataset:")
+print("\nInformación general del dataset:")
 print(data.info())
 
-print("\n[1] Estadísticas generales del dataset:")
+print("\nEstadísticas generales del dataset:")
 print(data.describe())
 
 # Crear copia para trabajar
@@ -57,17 +57,18 @@ df = df[df["UnitPrice"] >= 0]
 # 2.4 Eliminación de filas indeseadas según descripción
 descripciones_a_eliminar = ["AMAZON FEE", "Manual", "Adjust bad debt", "POSTAGE",
                             "DOTCOM POSTAGE", "CRUK Commission", "Bank Charges", "SAMPLES"]
+
 df = df[~df["Description"].isin(descripciones_a_eliminar)]
-print(f"\n[2] Filas después de eliminar descripciones indeseadas: {len(df)}")
+print(f"\nFilas después de eliminar descripciones indeseadas: {len(df)}")
 
 # 2.5 Eliminación de duplicados
-print(f"\n[2] Registros duplicados antes de eliminar: {df.duplicated().sum()}")
+print(f"\nRegistros duplicados antes de eliminar: {df.duplicated().sum()}")
 df.drop_duplicates(inplace=True)
-print(f"[2] Registros duplicados después de eliminar: {df.duplicated().sum()}")
+print(f"Registros duplicados después de eliminar: {df.duplicated().sum()}")
 
 # 2.6 Eliminación de filas con valores nulos en columnas críticas
 df = df.dropna(subset=["Description", "UnitPrice"])
-print("\n[2] Valores nulos después de limpieza:")
+print("\nValores nulos después de limpieza:")
 print(df.isnull().sum())
 
 # -----------------------------
@@ -99,9 +100,9 @@ ventas_netas = total_ventas - total_devoluciones
 # Remover las devoluciones (manteniendo descuentos) del dataset final
 df = df[~df.index.isin(devoluciones.index)].copy()
 
-print(f"\n[3] Total de ventas antes de devoluciones: {round(total_ventas, 2)}")
-print(f"[3] Total de devoluciones: {round(total_devoluciones, 2)}")
-print(f"[3] Total de ventas netas: {round(ventas_netas, 2)}")
+print(f"\nTotal de ventas antes de devoluciones: {round(total_ventas, 2)}")
+print(f"Total de devoluciones: {round(total_devoluciones, 2)}")
+print(f"Total de ventas netas: {round(ventas_netas, 2)}")
 
 # 3.4 Creación de variable "Ventas Diarias" y variables temporales
 ventas_diarias = df.groupby('Date')['TotalPrice'].sum().reset_index()
@@ -112,10 +113,10 @@ ventas_diarias['DiaMes'] = ventas_diarias['Date'].dt.day
 ventas_diarias['Mes'] = ventas_diarias['Date'].dt.month
 ventas_diarias['SemanaAno'] = ventas_diarias['Date'].dt.isocalendar().week
 
-print("\n[3] Ejemplo de ventas diarias y variables temporales:")
+print("\nEjemplo de ventas diarias y variables temporales:")
 print(ventas_diarias.head())
 
-# 3.5 Normalización de variables numéricas (aplicamos StandardScaler a título de ejemplo)
+# 3.5 Normalización de variables numéricas 
 df_scaled = df.copy()
 scaler = MinMaxScaler()
 X_normalized = scaler.fit_transform(df[['Quantity', 'UnitPrice', 'TotalPrice']])
@@ -126,8 +127,6 @@ print(f'\n{df_normalized.head()}')
 # 4. División en Conjuntos de Entrenamiento, Validación y Test
 # -----------------------------
 
-# Es importante usar un índice de fecha para modelos de series temporales.
-# Por ejemplo, para ARIMA y Prophet, podemos establecer 'InvoiceDate' como DateTimeIndex.
 df_scaled = df.set_index('InvoiceDate')
 
 # Definir fechas para la división según el enunciado
@@ -143,9 +142,9 @@ train_size = int(len(df_train_val) * 0.8)
 df_train = df_train_val.iloc[:train_size]
 df_val = df_train_val.iloc[train_size:]
 
-print(f"\n[4] Tamaño del conjunto de entrenamiento: {len(df_train)}")
-print(f"[4] Tamaño del conjunto de validación: {len(df_val)}")
-print(f"[4] Tamaño del conjunto de test: {len(df_test)}\n")
+print(f"\nTamaño del conjunto de entrenamiento: {len(df_train)}")
+print(f"Tamaño del conjunto de validación: {len(df_val)}")
+print(f"Tamaño del conjunto de test: {len(df_test)}\n")
 
 # -----------------------------
 # 5. Ejemplo de Modelado: Regresión Polinómica
@@ -180,17 +179,14 @@ y_val_pred = model.predict(X_val)
 rmse_train = np.sqrt(mean_squared_error(y_train, y_train_pred))
 rmse_val = np.sqrt(mean_squared_error(y_val, y_val_pred))
 
-print(f"\n[5] RMSE en entrenamiento (Regresión Polinómica): {rmse_train:.2f}")
-print(f"[5] RMSE en validación (Regresión Polinómica): {rmse_val:.2f}\n")
+print(f"\nRMSE en entrenamiento (Regresión Polinómica): {rmse_train:.2f}")
+print(f"RMSE en validación (Regresión Polinómica): {rmse_val:.2f}\n")
 
 # -----------------------------
 # 6. Ejemplo de Modelado de Series Temporales y Otros Modelos
 # -----------------------------
 
 # ARIMA:
-# Para ARIMA, es importante tener un DateTimeIndex. Ya hemos establecido el índice en df.
-# Usamos la serie de ventas diarias como ejemplo:
-# Convertir 'ventas_diarias' a una serie temporal con DateTimeIndex y frecuencia diaria
 ventas_diarias_ts = ventas_diarias.set_index('Date')['VentasDiarias']
 ventas_diarias_ts = ventas_diarias_ts.asfreq('D')
 
@@ -264,7 +260,7 @@ def create_sequences(data, seq_length):
     return np.array(X_seq), np.array(y_seq)
 
 seq_length = 10
-y_train_array = y_train.values  # Convertir a array
+y_train_array = y_train.values 
 y_val_array = y_val.values
 
 X_train_lstm, y_train_lstm = create_sequences(y_train_array, seq_length)
@@ -278,7 +274,7 @@ X_val_lstm = X_val_lstm.reshape((X_val_lstm.shape[0], X_val_lstm.shape[1], 1))
 model_lstm = Sequential([
     Input(shape=(seq_length, 1)),
     LSTM(50, activation='relu', return_sequences=False),
-    Dropout(0.2),  # Agregamos dropout para regularización
+    Dropout(0.2), 
     Dense(1)
 ])
 model_lstm.compile(optimizer='adam', loss='mse')
@@ -291,7 +287,7 @@ rmse_lstm = np.sqrt(mean_squared_error(y_val_lstm, y_val_pred_lstm))
 print(f"RMSE LSTM: {rmse_lstm:.2f}")
 
 # Comparación de RMSE entre modelos
-print("\n--- Comparaci\u00f3n de RMSE ---")
+print("\n--- Comparación de RMSE ---")
 print(f"RMSE ARIMA: {rmse_arima:.2f}")
 print(f"RMSE Prophet: {rmse_prophet:.2f}")
 print(f"RMSE Random Forest: {rmse_rf:.2f}")
